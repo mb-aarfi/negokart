@@ -1,0 +1,28 @@
+/* Reset and full-viewport layout */
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Remove Vite's centering that causes side gaps */
+body {
+  display: block;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #0b1220;
+  color: #e5e7eb;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Basic elements */
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+
+/* Optional: prefer dark theme explicitly */
+@media (prefers-color-scheme: light) {
+  body { background: #0b1220; color: #e5e7eb; }
+}
