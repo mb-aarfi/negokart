@@ -23,7 +23,12 @@ import re
 
 # Database setup
 DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
+if DATABASE_URL:
+    engine = create_engine(DATABASE_URL)
+else:
+    # Default to local SQLite for demo/dev
+    DATABASE_URL = "sqlite:///./test.db"
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
