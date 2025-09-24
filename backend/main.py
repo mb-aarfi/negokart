@@ -22,13 +22,13 @@ import httpx
 import re
 
 # Database setup
-DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+DATABASE_URL = os.getenv("DATABASE_URL")
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # JWT config
-SECRET_KEY = "secretkeyforjwt"  # Change this in production
+SECRET_KEY = "secretkeyforjwt" 
 ALGORITHM = "HS256"
 
 # Password hashing
@@ -46,7 +46,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    role = Column(String)  # 'retailer' or 'wholesaler'
+    role = Column(String)  
 
 Base.metadata.create_all(bind=engine)
 
@@ -54,7 +54,7 @@ Base.metadata.create_all(bind=engine)
 class UserCreate(BaseModel):
     username: str
     password: str
-    role: str  # 'retailer' or 'wholesaler'
+    role: str  
 
 class Token(BaseModel):
     access_token: str
@@ -65,7 +65,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development only, restrict in production!
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -110,7 +110,7 @@ class ProductList(Base):
     __tablename__ = "product_lists"
     id = Column(Integer, primary_key=True, index=True)
     retailer_id = Column(Integer)
-    products = Column(String)  # Store as JSON string for simplicity
+    products = Column(String)  
 
 Base.metadata.create_all(bind=engine)
 
@@ -141,7 +141,7 @@ class WholesalerNegotiation(Base):
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(Integer, index=True)
     wholesaler_id = Column(Integer, index=True)
-    status = Column(String, default="in_progress")  # in_progress | finalized
+    status = Column(String, default="in_progress")  
     finalized_at = Column(String, nullable=True)
 
 # Archived history per wholesaler after finalization
@@ -152,7 +152,7 @@ class WholesalerHistory(Base):
     wholesaler_id = Column(Integer, index=True)
     retailer_id = Column(Integer, index=True)
     finalized_at = Column(String)
-    data = Column(String)  # JSON snapshot including currency and items with final prices
+    data = Column(String)  
 
 # Chat message model for AI ↔ wholesaler conversation
 class ChatMessage(Base):
@@ -160,7 +160,7 @@ class ChatMessage(Base):
     id = Column(Integer, primary_key=True, index=True)
     session_id = Column(Integer, index=True)
     wholesaler_id = Column(Integer, index=True)
-    role = Column(String)  # 'system' | 'assistant' | 'user'
+    role = Column(String)  
     content = Column(String)
     created_at = Column(String, default=lambda: datetime.utcnow().isoformat())
 
@@ -191,6 +191,13 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1")
 
+# Hosted LLM providers (optional)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "").lower()  # "openai" | "groq" | "deepseek"
+LLM_MODEL = os.getenv("LLM_MODEL", "")  # optional override
+
 # Helper: build system prompt from context
 def build_system_prompt(retailer_username: str, products: list[dict]):
     product_lines = "\n".join([f"- {p['name']} x {p['quantity']}" for p in products])
@@ -207,17 +214,58 @@ def build_system_prompt(retailer_username: str, products: list[dict]):
         "- Do not include any commentary inside the JSON markers.\n"
     )
 
-# Helper: call local LLM via Ollama chat API
+# Helper: call hosted LLMs (if configured) or local Ollama, else fallback
 async def generate_ai_reply(messages: list[dict]) -> str:
-    url = f"{OLLAMA_BASE_URL}/api/chat"
-    payload = {"model": OLLAMA_MODEL, "messages": messages, "stream": False}
     try:
         async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.post(url, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
-            content = data.get("message", {}).get("content")
-            return content or ""
+            # OpenAI
+            if LLM_PROVIDER == "openai" and OPENAI_API_KEY:
+                url = "https://api.openai.com/v1/chat/completions"
+                model = LLM_MODEL or "gpt-4o-mini"
+                payload = {"model": model, "messages": messages, "temperature": 0.2}
+                headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
+                r = await client.post(url, json=payload, headers=headers)
+                r.raise_for_status()
+                data = r.json()
+                return (data.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
+
+            # Groq (OpenAI-compatible)
+            if LLM_PROVIDER == "groq" and GROQ_API_KEY:
+                url = "https://api.groq.com/openai/v1/chat/completions"
+                model = LLM_MODEL or "llama-3.1-70b-versatile"
+                payload = {"model": model, "messages": messages, "temperature": 0.2}
+                headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
+                r = await client.post(url, json=payload, headers=headers)
+                r.raise_for_status()
+                data = r.json()
+                return (data.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
+
+            # DeepSeek (OpenAI-style)
+            if LLM_PROVIDER == "deepseek" and DEEPSEEK_API_KEY:
+                url = "https://api.deepseek.com/chat/completions"
+                model = LLM_MODEL or "deepseek-chat"
+                payload = {"model": model, "messages": messages, "temperature": 0.2}
+                headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
+                r = await client.post(url, json=payload, headers=headers)
+                r.raise_for_status()
+                data = r.json()
+                return (data.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
+
+            # Ollama (local) as a best-effort if configured/reachable
+            try:
+                url = f"{OLLAMA_BASE_URL}/api/chat"
+                payload = {"model": OLLAMA_MODEL, "messages": messages, "stream": False}
+                resp = await client.post(url, json=payload)
+                resp.raise_for_status()
+                data = resp.json()
+                content = data.get("message", {}).get("content")
+                if content:
+                    return content
+            except Exception:
+                pass
+
+            # Fallback safe static reply
+            return "Thanks. Please provide your best per-unit prices, any bulk discounts, and MOQs for the listed items."
     except Exception:
         return "Thanks. Please provide your best per-unit prices, any bulk discounts, and MOQs for the listed items."
 
