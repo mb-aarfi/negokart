@@ -20,6 +20,7 @@ from datetime import datetime
 import json
 import httpx
 import re
+import logging
 
 # Database setup
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -70,6 +71,9 @@ class Token(BaseModel):
 
 # FastAPI app
 app = FastAPI()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("negokart.backend")
 
 app.add_middleware(
     CORSMiddleware,
@@ -225,16 +229,18 @@ def build_system_prompt(retailer_username: str, products: list[dict]):
 # Helper: call hosted LLMs (if configured) or local Ollama, else fallback
 async def generate_ai_reply(messages: list[dict]) -> str:
     try:
+        logger.info("LLM selection provider=%s model=%s", LLM_PROVIDER or "", LLM_MODEL or "")
         async with httpx.AsyncClient(timeout=60) as client:
             # OpenAI
             if LLM_PROVIDER == "openai" and OPENAI_API_KEY:
                 url = "https://api.openai.com/v1/chat/completions"
                 model = LLM_MODEL or "gpt-4o-mini"
                 payload = {"model": model, "messages": messages, "temperature": 0.2}
-                headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
+                headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
                 r = await client.post(url, json=payload, headers=headers)
                 r.raise_for_status()
                 data = r.json()
+                logger.info("OpenAI ok status=%s", r.status_code)
                 return (data.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
 
             # Groq (OpenAI-compatible)
@@ -242,10 +248,11 @@ async def generate_ai_reply(messages: list[dict]) -> str:
                 url = "https://api.groq.com/openai/v1/chat/completions"
                 model = LLM_MODEL or "llama-3.1-70b-versatile"
                 payload = {"model": model, "messages": messages, "temperature": 0.2}
-                headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
+                headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
                 r = await client.post(url, json=payload, headers=headers)
                 r.raise_for_status()
                 data = r.json()
+                logger.info("Groq ok status=%s", r.status_code)
                 return (data.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
 
             # DeepSeek (OpenAI-style)
@@ -253,10 +260,11 @@ async def generate_ai_reply(messages: list[dict]) -> str:
                 url = "https://api.deepseek.com/chat/completions"
                 model = LLM_MODEL or "deepseek-chat"
                 payload = {"model": model, "messages": messages, "temperature": 0.2}
-                headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}"}
+                headers = {"Authorization": f"Bearer {DEEPSEEK_API_KEY}", "Content-Type": "application/json"}
                 r = await client.post(url, json=payload, headers=headers)
                 r.raise_for_status()
                 data = r.json()
+                logger.info("DeepSeek ok status=%s", r.status_code)
                 return (data.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
 
             # Ollama (local) as a best-effort if configured/reachable
@@ -269,12 +277,20 @@ async def generate_ai_reply(messages: list[dict]) -> str:
                 content = data.get("message", {}).get("content")
                 if content:
                     return content
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Ollama call failed: %s", str(e))
 
             # Fallback safe static reply
             return "Thanks. Please provide your best per-unit prices, any bulk discounts, and MOQs for the listed items."
-    except Exception:
+    except httpx.HTTPStatusError as he:
+        try:
+            err_body = he.response.text
+        except Exception:
+            err_body = "<no body>"
+        logger.error("LLM HTTP error status=%s body=%s", getattr(he.response, "status_code", "?"), err_body)
+        return "Thanks. Please provide your best per-unit prices, any bulk discounts, and MOQs for the listed items."
+    except Exception as e:
+        logger.error("LLM unexpected error: %s", str(e))
         return "Thanks. Please provide your best per-unit prices, any bulk discounts, and MOQs for the listed items."
 
 # Detect and parse final JSON from AI content
