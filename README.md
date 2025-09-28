@@ -55,7 +55,8 @@ Create `backend/main.py` already present in repo. Run dev server:
 # optional env (choose the model you pulled in Ollama)
 $env:OLLAMA_MODEL="llama3.2:3b"
 $env:OLLAMA_BASE_URL="http://127.0.0.1:11434"
-uvicorn main:app --reload
+
+python -m uvicorn main:app --reload
 ```
 FastAPI runs at `http://127.0.0.1:8000`.
 
