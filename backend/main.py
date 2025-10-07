@@ -37,8 +37,8 @@ if DATABASE_URL:
         DATABASE_URL = f"{DATABASE_URL}{sep}sslmode=require"
     engine = create_engine(DATABASE_URL)
 else:
-    # Default to local SQLite for demo/dev
-    DATABASE_URL = "sqlite:///./test.db"
+    # Default to SQLite file in /tmp (writable on most hosts like Render)
+    DATABASE_URL = "sqlite:////tmp/test.db"
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
