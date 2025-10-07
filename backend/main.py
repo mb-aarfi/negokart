@@ -25,8 +25,11 @@ import logging
 # Database setup
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
-    # Ensure SQLAlchemy uses psycopg driver when a Postgres URL is provided
-    if DATABASE_URL.startswith("postgresql://"):
+    # Normalize Postgres URLs from common providers (Render, Heroku, etc.)
+    # Accept both "postgres://" and "postgresql://" and ensure psycopg driver is used
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+    elif DATABASE_URL.startswith("postgresql://"):
         DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
     engine = create_engine(DATABASE_URL)
 else:
