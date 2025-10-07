@@ -14,7 +14,7 @@ function Login({ onLogin }) {
     setMessage('');
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-1.onrender.com';
       const params = new URLSearchParams();
       params.append('username', form.username);
       params.append('password', form.password);

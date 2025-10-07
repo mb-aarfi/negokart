@@ -14,7 +14,7 @@ function Register() {
     setMessage('');
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'; 
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-1.onrender.com'; 
       const res = await fetch(`${API_BASE}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
