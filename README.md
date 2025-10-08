@@ -7,7 +7,6 @@ An end‑to‑end system where a Retailer submits a product list and an AI agent
 https://github.com/user-attachments/assets/a00f1875-c7b4-4a48-9dda-a7d0d4eb3e89
 
 
-
 ## Features
 - AI‑driven negotiation chats (per wholesaler)
 - Multi‑wholesaler parallel sessions
@@ -135,13 +134,6 @@ frontend/
     WholesalerDashboard.jsx# Chat + Send My Prices + History
     assets/logo_nego.*
 ```
-
-## Troubleshooting
-- Backend error: `Form data requires "python-multipart"` → install it or ensure login uses `application/x-www-form-urlencoded` (already configured).
-- `httpx` not found → `pip install httpx` in the backend venv.
-- Ollama not reachable → ensure it’s running and your model is pulled; verify with `/api/tags`.
-- CORS blocked → CORS middleware is enabled in `main.py` for dev.
-- Reset sessions (keep users): run a small SQLite cleanup script to delete from `offers`, `chat_messages`, `wholesaler_negotiations`, `wholesaler_history`, `negotiation_sessions`, and `product_lists`.
 
 ## Roadmap
 - WebSocket push notifications for instant retailer updates
