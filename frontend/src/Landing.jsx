@@ -1,6 +1,5 @@
 import React from 'react';
 import Navbar from './Navbar';
-import './Landing.css';
 
 function Landing({ onLoginClick, onRegisterClick, isAuthenticated, role, onLogoutClick }) {
 	return (
