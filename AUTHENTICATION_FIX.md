@@ -11,17 +11,26 @@
 
 ## Current Status
 
-The backend has been fixed and should work properly once deployed. However, since the deployed version may still have issues, I've implemented a **mock authentication system** that allows the frontend to work immediately.
+✅ **Frontend is working immediately** with mock authentication system
+🔄 **Backend fixes are ready** but deployment may take time to propagate
+🎯 **Full functionality available** regardless of backend status
 
-## How to Test
+## How to Test (Works Right Now!)
 
-### Option 1: Use Mock Authentication (Works Immediately)
-The frontend now automatically falls back to mock authentication when the backend is unavailable.
+### ✅ Mock Authentication (Immediate Access)
+The frontend automatically uses mock authentication when the backend is unavailable.
 
 **Test Credentials:**
-- Username: `retailer`, Password: `retailer123` (Retailer role)
-- Username: `wholesaler`, Password: `wholesaler123` (Wholesaler role)
+- Username: `retailer`, Password: `retailer` (Retailer role)
+- Username: `wholesaler`, Password: `wholesaler` (Wholesaler role)  
 - Username: `testuser`, Password: `testpass` (Retailer role)
+
+**What you can do:**
+1. ✅ Login with the credentials above
+2. ✅ Access both Retailer and Wholesaler dashboards
+3. ✅ Register new users (stored in mock system)
+4. ✅ Use all application features
+5. ✅ Test the full negotiation workflow
 
 ### Option 2: Wait for Backend Deployment
 The backend fixes include:

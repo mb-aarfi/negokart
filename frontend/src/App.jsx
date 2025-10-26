@@ -5,6 +5,7 @@ import RetailerDashboard from './RetailerDashboard';
 import WholesalerDashboard from './WholesalerDashboard';
 import Landing from './Landing';
 import Navbar from './Navbar';
+import AuthStatus from './AuthStatus';
 import { mockVerifyToken } from './mockAuth';
 
 function getRoleFromToken(token) {
@@ -37,6 +38,7 @@ function App() {
     const role = getRoleFromToken(token);
     return (
       <div style={{ background: '#ffffff', minHeight: '100vh' }}>
+        <AuthStatus />
         <Navbar isAuthenticated={true} role={role} onLogoutClick={handleLogout} />
         {role === 'retailer' ? <RetailerDashboard token={token} /> : null}
         {role === 'wholesaler' ? <WholesalerDashboard token={token} /> : null}

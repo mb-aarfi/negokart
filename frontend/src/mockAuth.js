@@ -2,8 +2,8 @@
 // This provides a fallback when the backend is not working properly
 
 const MOCK_USERS = [
-  { username: 'retailer', password: 'retailer123', role: 'retailer' },
-  { username: 'wholesaler', password: 'wholesaler123', role: 'wholesaler' },
+  { username: 'retailer', password: 'retailer', role: 'retailer' },
+  { username: 'wholesaler', password: 'wholesaler', role: 'wholesaler' },
   { username: 'testuser', password: 'testpass', role: 'retailer' }
 ];
 
