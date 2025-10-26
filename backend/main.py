@@ -22,6 +22,10 @@ import httpx
 import re
 import logging
 
+# Setup logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("negokart.backend")
+
 # Database setup
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
@@ -88,9 +92,6 @@ class Token(BaseModel):
 
 # FastAPI app
 app = FastAPI()
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("negokart.backend")
 
 # CORS configuration
 allowed_origins = [
