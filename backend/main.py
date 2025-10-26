@@ -25,6 +25,7 @@ import logging
 # Database setup
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
+    logger.info(f"Using PostgreSQL database: {DATABASE_URL[:20]}...")
     # Normalize Postgres URLs from common providers (Render, Heroku, etc.)
     # Accept both "postgres://" and "postgresql://" and ensure psycopg driver is used
     if DATABASE_URL.startswith("postgres://"):
@@ -37,6 +38,7 @@ if DATABASE_URL:
         DATABASE_URL = f"{DATABASE_URL}{sep}sslmode=require"
     engine = create_engine(DATABASE_URL)
 else:
+    logger.info("Using SQLite database (local development)")
     # Default to SQLite file in current directory for local development
     DATABASE_URL = "sqlite:///./test.db"
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
@@ -173,7 +175,13 @@ def read_root():
 @app.get("/health")
 def health_check():
     logger.info("Health check endpoint accessed")
-    return {"status": "healthy", "message": "Backend is running", "database_url": DATABASE_URL[:20] + "..." if DATABASE_URL else "SQLite"}
+    db_type = "PostgreSQL" if DATABASE_URL and "postgresql" in DATABASE_URL else "SQLite"
+    return {
+        "status": "healthy", 
+        "message": "Backend is running", 
+        "database_type": db_type,
+        "database_url": DATABASE_URL[:20] + "..." if DATABASE_URL else "SQLite"
+    }
 
 # Product list model
 class ProductList(Base):
