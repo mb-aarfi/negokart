@@ -2,7 +2,7 @@
 
 An end‑to‑end system where a Retailer submits a product list and an AI agent negotiates prices with multiple Wholesalers individually over chat, collects final prices, and presents the best deals back to the Retailer.
 
-## Working Demo
+## Working Demo (https://negokart.vercel.app/)
 
 https://github.com/user-attachments/assets/a00f1875-c7b4-4a48-9dda-a7d0d4eb3e89
 
