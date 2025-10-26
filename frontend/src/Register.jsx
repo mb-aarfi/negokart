@@ -15,10 +15,32 @@ function Register({ onBackClick }) {
     setForm({ ...form, role });
   };
 
+  const testConnection = async () => {
+    const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com';
+    try {
+      console.log('Testing connection to:', API_BASE);
+      const response = await fetch(`${API_BASE}/health`);
+      const data = await response.json();
+      console.log('Health check response:', data);
+      return true;
+    } catch (err) {
+      console.error('Connection test failed:', err);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
     setError('');
+    
+    // Test connection first
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      setError('Cannot connect to backend server. Please check your internet connection and try again.');
+      return;
+    }
+    
     try {
       const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com'; 
       const res = await fetch(`${API_BASE}/register`, {
@@ -36,7 +58,15 @@ function Register({ onBackClick }) {
     } catch (err) {
       console.error('Registration error:', err);
       console.error('API_BASE:', import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com');
-      setError(`Network error: ${err.message}`);
+      console.error('Error type:', err.constructor.name);
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
+      
+      if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+        setError(`Cannot connect to backend server. Please check if the server is running at ${import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com'}`);
+      } else {
+        setError(`Network error: ${err.message}`);
+      }
     }
   };
 
