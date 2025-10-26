@@ -1,0 +1,22 @@
+# Environment variables for production deployment
+# Copy this file to .env and fill in your values
+
+# Database
+DATABASE_URL=postgresql://username:password@host:port/database
+
+# JWT Secret Key (generate a strong secret key for production)
+SECRET_KEY=your-super-secret-jwt-key-change-this-in-production
+
+# CORS Origins (comma-separated list of allowed origins)
+ALLOWED_ORIGINS=https://your-frontend-domain.com,https://your-app.vercel.app
+
+# LLM Configuration (optional)
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your-openai-api-key
+GROQ_API_KEY=your-groq-api-key
+DEEPSEEK_API_KEY=your-deepseek-api-key
+LLM_MODEL=gpt-4o-mini
+
+# Ollama Configuration (for local development)
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=llama3.1

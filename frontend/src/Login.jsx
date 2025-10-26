@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Auth.css';
 import logo from './assets/logo_nego.png';
+import { mockLogin, isBackendWorking } from './mockAuth';
 
 function Login({ onLogin, onBackClick }) {
   const [form, setForm] = useState({ username: '', password: '' });
@@ -32,9 +33,21 @@ function Login({ onLogin, onBackClick }) {
     
     // Test connection first
     const isConnected = await testConnection();
+    
     if (!isConnected) {
-      setError('Cannot connect to backend server. Please check your internet connection and try again.');
-      return;
+      console.log('Backend not available, trying mock authentication...');
+      
+      // Try mock authentication as fallback
+      const mockResult = mockLogin(form.username, form.password);
+      if (mockResult.success) {
+        setMessage('Login successful! (Using demo mode)');
+        localStorage.setItem('token', mockResult.token);
+        if (onLogin) onLogin(mockResult.token);
+        return;
+      } else {
+        setError(mockResult.error || 'Invalid username or password');
+        return;
+      }
     }
     
     try {
@@ -42,18 +55,40 @@ function Login({ onLogin, onBackClick }) {
       const params = new URLSearchParams();
       params.append('username', form.username);
       params.append('password', form.password);
+      
+      console.log('Attempting login with:', { username: form.username, API_BASE });
+      
       const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json'
+        },
         body: params.toString(),
       });
-      const data = await res.json();
+      
+      console.log('Login response status:', res.status);
+      console.log('Login response headers:', Object.fromEntries(res.headers.entries()));
+      
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        console.error('JSON parse error:', jsonErr);
+        const textResponse = await res.text();
+        console.error('Raw response:', textResponse);
+        setError(`Server error: ${res.status} - ${textResponse}`);
+        return;
+      }
+      
+      console.log('Login response data:', data);
+      
       if (res.ok) {
         setMessage('Login successful!');
         localStorage.setItem('token', data.access_token);
         if (onLogin) onLogin(data.access_token);
       } else {
-        setError(data.detail || 'Login failed');
+        setError(data.detail || `Login failed (${res.status})`);
       }
     } catch (err) {
       console.error('Login error:', err);

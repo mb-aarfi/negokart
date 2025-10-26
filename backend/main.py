@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Float
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Float, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from passlib.context import CryptContext
@@ -50,25 +50,36 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # JWT config
-SECRET_KEY = "secretkeyforjwt" 
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def get_password_hash(password):
-    # Truncate password to 72 bytes (bcrypt limit)
-    if isinstance(password, str):
-        password = password.encode('utf-8')
-    password = password[:72]
-    return pwd_context.hash(password)
+def get_password_hash(password: str) -> str:
+    """Hash a password using bcrypt"""
+    try:
+        # Ensure password is string and not too long
+        if not isinstance(password, str):
+            password = str(password)
+        if len(password) > 72:
+            password = password[:72]
+        return pwd_context.hash(password)
+    except Exception as e:
+        logger.error(f"Error hashing password: {e}")
+        raise HTTPException(status_code=500, detail="Password hashing failed")
 
-def verify_password(plain_password, hashed_password):
-    # Truncate password to 72 bytes (bcrypt limit)
-    if isinstance(plain_password, str):
-        plain_password = plain_password.encode('utf-8')
-    plain_password = plain_password[:72]
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash"""
+    try:
+        if not isinstance(plain_password, str):
+            plain_password = str(plain_password)
+        if len(plain_password) > 72:
+            plain_password = plain_password[:72]
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception as e:
+        logger.error(f"Error verifying password: {e}")
+        return False
 
 # User model
 class User(Base):
@@ -103,6 +114,11 @@ allowed_origins = [
     "http://127.0.0.1:3000"
 ]
 
+# Add environment-based origins
+env_origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
+if env_origins and env_origins[0]:
+    allowed_origins.extend([origin.strip() for origin in env_origins if origin.strip()])
+
 logger.info(f"CORS allowed origins: {allowed_origins}")
 
 app.add_middleware(
@@ -132,37 +148,75 @@ def get_db():
 # Registration endpoint
 @app.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.username == user.username).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
-    hashed_password = get_password_hash(user.password)
-    db_user = User(username=user.username, hashed_password=hashed_password, role=user.role)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return {"message": "User registered successfully"}
+    try:
+        # Validate input
+        if not user.username or len(user.username.strip()) < 3:
+            raise HTTPException(status_code=400, detail="Username must be at least 3 characters long")
+        
+        if not user.password or len(user.password) < 6:
+            raise HTTPException(status_code=400, detail="Password must be at least 6 characters long")
+        
+        if user.role not in ["retailer", "wholesaler"]:
+            raise HTTPException(status_code=400, detail="Role must be either 'retailer' or 'wholesaler'")
+        
+        # Check if user already exists
+        db_user = db.query(User).filter(User.username == user.username).first()
+        if db_user:
+            raise HTTPException(status_code=400, detail="Username already registered")
+        
+        # Hash password and create user
+        hashed_password = get_password_hash(user.password)
+        db_user = User(
+            username=user.username.strip(), 
+            hashed_password=hashed_password, 
+            role=user.role
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        
+        logger.info(f"User registered successfully: {user.username}")
+        return {"message": "User registered successfully", "user_id": db_user.id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Registration error: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 # Login endpoint
 @app.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     try:
+        # Validate input
+        if not form_data.username or not form_data.password:
+            raise HTTPException(status_code=400, detail="Username and password are required")
+        
+        # Find user
         user = db.query(User).filter(User.username == form_data.username).first()
         if not user:
+            logger.warning(f"Login attempt with non-existent username: {form_data.username}")
             raise HTTPException(status_code=401, detail="Incorrect username or password")
         
-        # Verify password with error handling
-        try:
-            password_valid = verify_password(form_data.password, user.hashed_password)
-        except Exception as e:
-            logger.error(f"Password verification error: {e}")
-            raise HTTPException(status_code=401, detail="Incorrect username or password")
-        
+        # Verify password
+        password_valid = verify_password(form_data.password, user.hashed_password)
         if not password_valid:
+            logger.warning(f"Invalid password attempt for user: {form_data.username}")
             raise HTTPException(status_code=401, detail="Incorrect username or password")
             
-        token_data = {"sub": user.username, "role": user.role}
+        # Generate JWT token
+        token_data = {
+            "sub": user.username, 
+            "role": user.role,
+            "user_id": user.id,
+            "exp": datetime.utcnow().timestamp() + 86400  # 24 hours
+        }
         access_token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
+        
+        logger.info(f"User logged in successfully: {user.username}")
         return {"access_token": access_token, "token_type": "bearer"}
+        
     except HTTPException:
         raise
     except Exception as e:
@@ -183,6 +237,7 @@ def health_check():
         "database_type": db_type,
         "database_url": DATABASE_URL[:20] + "..." if DATABASE_URL else "SQLite"
     }
+
 
 # Product list model
 class ProductList(Base):
@@ -265,6 +320,39 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:
         raise credentials_exception
     return user
+
+@app.get("/test-auth")
+def test_auth(current_user: User = Depends(get_current_user)):
+    """Test endpoint to verify authentication is working"""
+    return {
+        "message": "Authentication successful",
+        "user": {
+            "username": current_user.username,
+            "role": current_user.role,
+            "id": current_user.id
+        }
+    }
+
+@app.get("/debug/users")
+def debug_users(db: Session = Depends(get_db)):
+    """Debug endpoint to check what users exist in the database"""
+    try:
+        users = db.query(User).all()
+        return {
+            "user_count": len(users),
+            "users": [
+                {
+                    "id": user.id,
+                    "username": user.username,
+                    "role": user.role,
+                    "has_password": bool(user.hashed_password)
+                }
+                for user in users
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Debug users error: {e}")
+        return {"error": str(e)}
 
 # Configuration for local LLM via Ollama
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
@@ -614,6 +702,47 @@ async def send_chat(session_id: int, req: ChatSendRequest, db: Session = Depends
 
     return {"reply": ai_msg.content, "finalized": finalized}
 
-# Create all database tables
-Base.metadata.create_all(bind=engine)
-logger.info("Database tables created successfully")
+# Database initialization and health check
+def init_database():
+    """Initialize database and create tables"""
+    try:
+        # Test database connection
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        logger.info("Database connection successful")
+        
+        # Create tables
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
+        
+        # Create default users if they don't exist
+        db = SessionLocal()
+        try:
+            # Check if any users exist
+            user_count = db.query(User).count()
+            if user_count == 0:
+                logger.info("No users found, creating default users")
+                
+                # Create default retailer
+                retailer_password = get_password_hash("retailer123")
+                retailer = User(username="retailer", hashed_password=retailer_password, role="retailer")
+                db.add(retailer)
+                
+                # Create default wholesaler
+                wholesaler_password = get_password_hash("wholesaler123")
+                wholesaler = User(username="wholesaler", hashed_password=wholesaler_password, role="wholesaler")
+                db.add(wholesaler)
+                
+                db.commit()
+                logger.info("Default users created: retailer/retailer123, wholesaler/wholesaler123")
+            else:
+                logger.info(f"Database initialized with {user_count} existing users")
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        raise
+
+# Initialize database
+init_database()

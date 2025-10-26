@@ -5,9 +5,17 @@ import RetailerDashboard from './RetailerDashboard';
 import WholesalerDashboard from './WholesalerDashboard';
 import Landing from './Landing';
 import Navbar from './Navbar';
+import { mockVerifyToken } from './mockAuth';
 
 function getRoleFromToken(token) {
   try {
+    // First try mock token verification
+    const mockPayload = mockVerifyToken(token);
+    if (mockPayload) {
+      return mockPayload.role;
+    }
+    
+    // Fallback to regular JWT parsing
     const payload = JSON.parse(atob(token.split('.')[1]));
     return payload.role;
   } catch {

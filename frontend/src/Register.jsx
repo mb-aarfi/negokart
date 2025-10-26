@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Auth.css';
 import logo from './assets/logo_nego.png';
+import { mockRegister, isBackendWorking } from './mockAuth';
 
 function Register({ onBackClick }) {
   const [form, setForm] = useState({ username: '', password: '', role: 'retailer' });
@@ -36,24 +37,57 @@ function Register({ onBackClick }) {
     
     // Test connection first
     const isConnected = await testConnection();
+    
     if (!isConnected) {
-      setError('Cannot connect to backend server. Please check your internet connection and try again.');
-      return;
+      console.log('Backend not available, trying mock registration...');
+      
+      // Try mock registration as fallback
+      const mockResult = mockRegister(form.username, form.password, form.role);
+      if (mockResult.success) {
+        setMessage(mockResult.message + ' (Demo mode)');
+        setForm({ username: '', password: '', role: 'retailer' });
+        return;
+      } else {
+        setError(mockResult.error || 'Registration failed');
+        return;
+      }
     }
     
     try {
       const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com'; 
+      
+      console.log('Attempting registration with:', { username: form.username, role: form.role, API_BASE });
+      
       const res = await fetch(`${API_BASE}/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
+      
+      console.log('Registration response status:', res.status);
+      console.log('Registration response headers:', Object.fromEntries(res.headers.entries()));
+      
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        console.error('JSON parse error:', jsonErr);
+        const textResponse = await res.text();
+        console.error('Raw response:', textResponse);
+        setError(`Server error: ${res.status} - ${textResponse}`);
+        return;
+      }
+      
+      console.log('Registration response data:', data);
+      
       if (res.ok) {
         setMessage(data.message);
         setForm({ username: '', password: '', role: 'retailer' });
       } else {
-        setError(data.detail || 'Registration failed');
+        setError(data.detail || `Registration failed (${res.status})`);
       }
     } catch (err) {
       console.error('Registration error:', err);
