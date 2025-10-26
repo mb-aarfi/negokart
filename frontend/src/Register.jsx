@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import './Auth.css';
+import logo from './assets/logo_nego.png';
 
-function Register() {
+function Register({ onBackClick }) {
   const [form, setForm] = useState({ username: '', password: '', role: 'retailer' });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -9,12 +11,16 @@ function Register() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleRoleChange = (role) => {
+    setForm({ ...form, role });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-1.onrender.com'; 
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com'; 
       const res = await fetch(`${API_BASE}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -28,33 +34,97 @@ function Register() {
         setError(data.detail || 'Registration failed');
       }
     } catch (err) {
-      setError('Network error');
+      console.error('Registration error:', err);
+      setError('Network error - Please check your connection');
     }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '2rem auto', padding: 20, border: '1px solid #ccc', borderRadius: 8 }}>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username:</label><br />
-          <input name="username" value={form.username} onChange={handleChange} required />
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <img src={logo} alt="NegoKart" className="auth-logo" />
+          <h1 className="auth-title">Join NegoKart</h1>
+          <p className="auth-subtitle">Create your account and start negotiating</p>
         </div>
-        <div>
-          <label>Password:</label><br />
-          <input name="password" type="password" value={form.password} onChange={handleChange} required />
+        
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label className="form-label">Username</label>
+            <input 
+              name="username" 
+              value={form.username} 
+              onChange={handleChange} 
+              required 
+              className="form-input"
+              placeholder="Choose a username"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input 
+              name="password" 
+              type="password" 
+              value={form.password} 
+              onChange={handleChange} 
+              required 
+              className="form-input"
+              placeholder="Create a strong password"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Account Type</label>
+            <div className="role-selector">
+              <div 
+                className={`role-option ${form.role === 'retailer' ? 'selected' : ''}`}
+                onClick={() => handleRoleChange('retailer')}
+              >
+                <input 
+                  type="radio" 
+                  name="role" 
+                  value="retailer" 
+                  checked={form.role === 'retailer'}
+                  onChange={() => handleRoleChange('retailer')}
+                />
+                <label>🛍️ Retailer</label>
+                <p style={{ fontSize: '12px', margin: '4px 0 0', color: '#64748b' }}>
+                  Buy products from wholesalers
+                </p>
+              </div>
+              
+              <div 
+                className={`role-option ${form.role === 'wholesaler' ? 'selected' : ''}`}
+                onClick={() => handleRoleChange('wholesaler')}
+              >
+                <input 
+                  type="radio" 
+                  name="role" 
+                  value="wholesaler" 
+                  checked={form.role === 'wholesaler'}
+                  onChange={() => handleRoleChange('wholesaler')}
+                />
+                <label>🏭 Wholesaler</label>
+                <p style={{ fontSize: '12px', margin: '4px 0 0', color: '#64748b' }}>
+                  Sell products to retailers
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <button type="submit" className="auth-button">
+            Create Account
+          </button>
+        </form>
+        
+        {message && <div className="auth-message success">{message}</div>}
+        {error && <div className="auth-message error">{error}</div>}
+        
+        <div className="auth-footer">
+          <p>Already have an account? <button onClick={onBackClick} className="auth-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Sign in here</button></p>
         </div>
-        <div>
-          <label>Role:</label><br />
-          <select name="role" value={form.role} onChange={handleChange}>
-            <option value="retailer">Retailer</option>
-            <option value="wholesaler">Wholesaler</option>
-          </select>
-        </div>
-        <button type="submit" style={{ marginTop: 12 }}>Register</button>
-      </form>
-      {message && <div style={{ color: 'green', marginTop: 10 }}>{message}</div>}
-      {error && <div style={{ color: 'red', marginTop: 10 }}>{error}</div>}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,10 @@
+# Environment Variables for Production Deployment
+
+# Frontend (Vercel)
+VITE_API_BASE=https://negokart-backend.onrender.com
+
+# Backend (Render) - Add these in Render dashboard
+OPENAI_API_KEY=your_openai_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+DATABASE_URL=postgresql://user:pass@host:port/dbname  # Auto-provided by Render

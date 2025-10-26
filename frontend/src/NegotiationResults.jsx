@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import './Dashboard.css';
 
 function NegotiationResults({ token }) {
   const [results, setResults] = useState([]);
@@ -13,7 +14,7 @@ function NegotiationResults({ token }) {
   const fetchResults = async () => {
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
       const res = await fetch(`${API_BASE}/retailer/negotiation_results`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -85,81 +86,149 @@ function NegotiationResults({ token }) {
     });
   });
 
-  if (loading) return <div style={{ color: '#e5e7eb', background: '#0b1220', minHeight: '100vh', padding: 20 }}>Loading negotiation results...</div>;
-  if (error) return <div style={{ color: '#f87171', background: '#0b1220', minHeight: '100vh', padding: 20 }}>{error}</div>;
-  if (!results.length) return <div style={{ color: '#e5e7eb', background: '#0b1220', minHeight: '100vh', padding: 20 }}>No negotiation results yet.</div>;
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <div className="loading">
+          <div className="loading-spinner"></div>
+          Loading negotiation results...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-container">
+        <div className="alert alert-error">
+          ❌ {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (!results.length) {
+    return (
+      <div className="dashboard-container">
+        <div className="empty-state">
+          <div className="empty-state-icon">📊</div>
+          <h3 className="empty-state-title">No Negotiation Results Yet</h3>
+          <p className="empty-state-description">
+            Your negotiation results will appear here once wholesalers respond to your requests.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 24, background: '#0b1220', minHeight: '100vh', color: '#e5e7eb' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <h2 style={{ margin: 0, color: '#cbd5e1' }}>Negotiation Results</h2>
-        <button onClick={fetchResults} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>Refresh</button>
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">
+          📊 Negotiation Results
+        </h1>
+        <p className="dashboard-subtitle">Compare offers from different wholesalers</p>
+        <div style={{ marginTop: 16 }}>
+          <button 
+            onClick={fetchResults} 
+            className="btn btn-secondary btn-sm"
+          >
+            🔄 Refresh
+          </button>
+        </div>
       </div>
-      {newOffers && <div style={{ color: '#34d399', marginTop: 10, fontWeight: 'bold' }}>New offers available!</div>}
-      {finalizedAlerts.length > 0 && (
-        <div style={{ marginTop: 10, padding: '12px 16px', background: '#064e3b', border: '1px solid #34d399', color: '#34d399', borderRadius: 8, fontWeight: 600 }}>
-          Finalized offer received from: {finalizedAlerts.join(', ')}
-        </div>
-      )}
-      {lastUpdated && <div style={{ color: '#94a3b8', fontSize: 13, marginTop: 4, marginBottom: 16 }}>Last updated: {lastUpdated.toLocaleTimeString()}</div>}
-      
-      {/* Summary Stats */}
-      {finalizedOffers.length > 0 && (
-        <div style={{ marginBottom: 20, padding: 12, background: '#1f2937', border: '1px solid #334155', borderRadius: 8 }}>
-          <div style={{ color: '#cbd5e1', fontWeight: 600, marginBottom: 8 }}>Summary</div>
-          <div style={{ display: 'flex', gap: 16, fontSize: 14 }}>
-            <span style={{ color: '#34d399' }}>Finalized: {finalizedOffers.length} wholesaler{finalizedOffers.length > 1 ? 's' : ''}</span>
-            <span style={{ color: '#93c5fd' }}>Best Total: ₹{Math.min(...finalizedOffers.map(w => w.totalCost)).toFixed(2)}</span>
-            <span style={{ color: '#fbbf24' }}>Products: {Object.keys(bestPrices).length}</span>
-          </div>
-        </div>
-      )}
 
-      {sortedResults.map((wholesaler, idx) => (
-        <div key={idx} style={{ marginBottom: 24, background: '#111827', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}>
-          <div style={{ padding: 12, background: '#0f172a', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <h3 style={{ color: '#93c5fd', margin: 0 }}>{wholesaler.wholesaler}</h3>
-              {wholesaler.status === 'finalized' && wholesaler.totalCost === Math.min(...finalizedOffers.map(w => w.totalCost)) && (
-                <span style={{ fontSize: 11, color: '#052e16', background: '#34d399', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>BEST DEAL</span>
-              )}
+      <div className="dashboard-content">
+        {newOffers && (
+          <div className="alert alert-info">
+            🎉 New offers available!
+          </div>
+        )}
+        
+        {finalizedAlerts.length > 0 && (
+          <div className="alert alert-success">
+            ✅ Finalized offer received from: {finalizedAlerts.join(', ')}
+          </div>
+        )}
+        
+        {lastUpdated && (
+          <div style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 24 }}>
+            Last updated: {lastUpdated.toLocaleTimeString()}
+          </div>
+        )}
+        
+        {/* Summary Stats */}
+        {finalizedOffers.length > 0 && (
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-value">{finalizedOffers.length}</div>
+              <div className="stat-label">Finalized Offers</div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {wholesaler.status === 'finalized' && (
-                <span style={{ fontSize: 12, color: '#cbd5e1' }}>Total: ₹{wholesaler.totalCost.toFixed(2)}</span>
-              )}
-              <span style={{ fontSize: 12, color: wholesaler.status === 'finalized' ? '#34d399' : '#fbbf24', background: wholesaler.status === 'finalized' ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)', padding: '4px 10px', borderRadius: 999 }}>
-                {wholesaler.status}
-              </span>
+            <div className="stat-card">
+              <div className="stat-value">₹{Math.min(...finalizedOffers.map(w => w.totalCost)).toFixed(2)}</div>
+              <div className="stat-label">Best Total Price</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{Object.keys(bestPrices).length}</div>
+              <div className="stat-label">Products</div>
             </div>
           </div>
-          <div style={{ padding: 12 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0b1220', border: '1px solid #334155' }}>
-              <thead>
-                <tr style={{ background: '#1f2937' }}>
-                  <th style={{ border: '1px solid #334155', padding: 8, textAlign: 'left', color: '#cbd5e1' }}>Product</th>
-                  <th style={{ border: '1px solid #334155', padding: 8, textAlign: 'left', color: '#cbd5e1' }}>Offered Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {wholesaler.offers.map((offer, i) => (
-                  <tr key={i} style={{ 
-                    background: wholesaler.status === 'finalized' && offer.price === bestPrices[offer.product_name] ? 'rgba(52,211,153,0.1)' : 'transparent'
-                  }}>
-                    <td style={{ border: '1px solid #334155', padding: 8, color: '#e5e7eb' }}>{offer.product_name}</td>
-                    <td style={{ border: '1px solid #334155', padding: 8, color: '#e5e7eb', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      ₹{offer.price}
-                      {wholesaler.status === 'finalized' && offer.price === bestPrices[offer.product_name] && (
-                        <span style={{ fontSize: 10, color: '#052e16', background: '#34d399', padding: '1px 4px', borderRadius: 3 }}>BEST</span>
-                      )}
-                    </td>
+        )}
+
+        {sortedResults.map((wholesaler, idx) => (
+          <div key={idx} className="dashboard-card">
+            <div className="card-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <h3 className="card-title">{wholesaler.wholesaler}</h3>
+                {wholesaler.status === 'finalized' && wholesaler.totalCost === Math.min(...finalizedOffers.map(w => w.totalCost)) && (
+                  <span className="status-badge status-best">BEST DEAL</span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {wholesaler.status === 'finalized' && (
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--success)' }}>
+                      ₹{wholesaler.totalCost.toFixed(2)}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--muted)' }}>Total Cost</div>
+                  </div>
+                )}
+                <span className={`status-badge ${wholesaler.status === 'finalized' ? 'status-finalized' : 'status-pending'}`}>
+                  {wholesaler.status}
+                </span>
+              </div>
+            </div>
+            
+            <div className="dashboard-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Offered Price</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {wholesaler.offers.map((offer, i) => (
+                    <tr key={i} style={{ 
+                      background: wholesaler.status === 'finalized' && offer.price === bestPrices[offer.product_name] ? 'rgba(16, 185, 129, 0.05)' : 'transparent'
+                    }}>
+                      <td>{offer.product_name}</td>
+                      <td style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontWeight: 500 }}>₹{offer.price}</span>
+                        {wholesaler.status === 'finalized' && offer.price === bestPrices[offer.product_name] && (
+                          <span className="status-badge status-best" style={{ fontSize: 10, padding: '2px 6px' }}>
+                            BEST
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

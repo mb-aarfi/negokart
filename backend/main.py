@@ -37,8 +37,8 @@ if DATABASE_URL:
         DATABASE_URL = f"{DATABASE_URL}{sep}sslmode=require"
     engine = create_engine(DATABASE_URL)
 else:
-    # Default to SQLite file in /tmp (writable on most hosts like Render)
-    DATABASE_URL = "sqlite:////tmp/test.db"
+    # Default to SQLite file in current directory for local development
+    DATABASE_URL = "sqlite:///./test.db"
     engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -84,7 +84,7 @@ logger = logging.getLogger("negokart.backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://negokart.vercel.app"],  
+    allow_origins=["https://negokart.vercel.app", "http://localhost:5173", "http://127.0.0.1:5173"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

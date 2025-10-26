@@ -28,7 +28,7 @@ function App() {
   if (token) {
     const role = getRoleFromToken(token);
     return (
-      <div style={{ background: '#0b1220', minHeight: '100vh' }}>
+      <div style={{ background: '#ffffff', minHeight: '100vh' }}>
         <Navbar isAuthenticated={true} role={role} onLogoutClick={handleLogout} />
         {role === 'retailer' ? <RetailerDashboard token={token} /> : null}
         {role === 'wholesaler' ? <WholesalerDashboard token={token} /> : null}
@@ -41,10 +41,10 @@ function App() {
   }
 
   if (view === 'login') {
-    return <Login onLogin={setToken} />;
+    return <Login onLogin={setToken} onBackClick={() => setView('landing')} />;
   }
 
-  return <Register />;
+  return <Register onBackClick={() => setView('landing')} />;
 }
 
 export default App;

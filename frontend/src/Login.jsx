@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import './Auth.css';
+import logo from './assets/logo_nego.png';
 
-function Login({ onLogin }) {
+function Login({ onLogin, onBackClick }) {
   const [form, setForm] = useState({ username: '', password: '' });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -14,7 +16,7 @@ function Login({ onLogin }) {
     setMessage('');
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-1.onrender.com';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
       const params = new URLSearchParams();
       params.append('username', form.username);
       params.append('password', form.password);
@@ -32,26 +34,58 @@ function Login({ onLogin }) {
         setError(data.detail || 'Login failed');
       }
     } catch (err) {
-      setError('Network error');
+      console.error('Login error:', err);
+      setError('Network error - Please check your connection');
     }
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '2rem auto', padding: 20, border: '1px solid #ccc', borderRadius: 8 }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username:</label><br />
-          <input name="username" value={form.username} onChange={handleChange} required />
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <img src={logo} alt="NegoKart" className="auth-logo" />
+          <h1 className="auth-title">Welcome Back</h1>
+          <p className="auth-subtitle">Sign in to your NegoKart account</p>
         </div>
-        <div>
-          <label>Password:</label><br />
-          <input name="password" type="password" value={form.password} onChange={handleChange} required />
+        
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label className="form-label">Username</label>
+            <input 
+              name="username" 
+              value={form.username} 
+              onChange={handleChange} 
+              required 
+              className="form-input"
+              placeholder="Enter your username"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input 
+              name="password" 
+              type="password" 
+              value={form.password} 
+              onChange={handleChange} 
+              required 
+              className="form-input"
+              placeholder="Enter your password"
+            />
+          </div>
+          
+          <button type="submit" className="auth-button">
+            Sign In
+          </button>
+        </form>
+        
+        {message && <div className="auth-message success">{message}</div>}
+        {error && <div className="auth-message error">{error}</div>}
+        
+        <div className="auth-footer">
+          <p>Don't have an account? <button onClick={onBackClick} className="auth-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Sign up here</button></p>
         </div>
-        <button type="submit" style={{ marginTop: 12 }}>Login</button>
-      </form>
-      {message && <div style={{ color: 'green', marginTop: 10 }}>{message}</div>}
-      {error && <div style={{ color: 'red', marginTop: 10 }}>{error}</div>}
+      </div>
     </div>
   );
 }

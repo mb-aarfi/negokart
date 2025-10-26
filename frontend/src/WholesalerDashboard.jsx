@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import './Dashboard.css';
 
 function WholesalerDashboard({ token }) {
   const [negotiations, setNegotiations] = useState([]);
@@ -15,7 +16,7 @@ function WholesalerDashboard({ token }) {
     setLoading(true);
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
       const res = await fetch(`${API_BASE}/wholesaler/negotiations`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -34,7 +35,7 @@ function WholesalerDashboard({ token }) {
 
   const fetchHistory = async () => {
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
       const res = await fetch(`${API_BASE}/wholesaler/history`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -47,7 +48,7 @@ function WholesalerDashboard({ token }) {
 
   const fetchChat = async (sessionId) => {
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
       const res = await fetch(`${API_BASE}/wholesaler/chat/${sessionId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -64,7 +65,7 @@ function WholesalerDashboard({ token }) {
     if (!text) return;
     setChats(ch => ({ ...ch, [sessionId]: { ...current, input: '' } }));
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
       const res = await fetch(`${API_BASE}/wholesaler/chat/${sessionId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -111,142 +112,218 @@ function WholesalerDashboard({ token }) {
     setSendingPrices(s => ({ ...s, [sessionId]: false }));
   };
 
-  if (loading) return <div style={{ color: '#e5e7eb', background: '#0b1220', minHeight: '100vh', padding: 20 }}>Loading negotiations...</div>;
-  if (error) return <div style={{ color: '#f87171', background: '#0b1220', minHeight: '100vh', padding: 20 }}>{error}</div>;
-
-  return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 24, background: '#0b1220', minHeight: '100vh', color: '#e5e7eb' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <h2 style={{ margin: 0, color: '#cbd5e1' }}>Wholesaler</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => setTab('active')} style={{ background: tab === 'active' ? '#2563eb' : '#1f2937', color: '#e5e7eb', border: '1px solid #334155', borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>Active</button>
-          <button onClick={() => setTab('history')} style={{ background: tab === 'history' ? '#2563eb' : '#1f2937', color: '#e5e7eb', border: '1px solid #334155', borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>History</button>
-          <button onClick={() => { fetchNegotiations(); fetchHistory(); }} style={{ background: '#374151', color: '#e5e7eb', border: '1px solid #4b5563', borderRadius: 6, padding: '8px 16px', cursor: 'pointer' }}>Refresh</button>
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <div className="loading">
+          <div className="loading-spinner"></div>
+          Loading negotiations...
         </div>
       </div>
-      {tab === 'active' ? (
-        <>
-          {lastUpdated && <div style={{ color: '#94a3b8', fontSize: 13, marginBottom: 16 }}>Last updated: {lastUpdated.toLocaleTimeString()}</div>}
-          {negotiations.length === 0 ? (
-            <div style={{ color: '#e5e7eb' }}>No active negotiation requests.</div>
-          ) : (
-            negotiations.map((neg, idx) => (
-              <div key={idx} style={{ marginBottom: 32, background: '#111827', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.25)' }}>
-                <div style={{ padding: 12, background: '#0f172a', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <h3 style={{ color: '#93c5fd', margin: 0 }}>Negotiation Session #{neg.session_id}</h3>
-                  <span style={{ fontSize: 12, color: neg.status === 'finalized' ? '#34d399' : '#fbbf24', background: neg.status === 'finalized' ? 'rgba(52,211,153,0.15)' : 'rgba(251,191,36,0.15)', padding: '4px 10px', borderRadius: 999 }}>{neg.status}</span>
-                </div>
+    );
+  }
 
-                <div style={{ padding: 12 }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0b1220', border: '1px solid #334155' }}>
-                    <thead>
-                      <tr style={{ background: '#1f2937' }}>
-                        <th style={{ border: '1px solid #334155', padding: 8, textAlign: 'left', color: '#cbd5e1' }}>Product</th>
-                        <th style={{ border: '1px solid #334155', padding: 8, textAlign: 'left', color: '#cbd5e1' }}>Quantity</th>
-                        <th style={{ border: '1px solid #334155', padding: 8, textAlign: 'left', color: '#cbd5e1' }}>Your Price</th>
-                        <th style={{ border: '1px solid #334155', padding: 8, textAlign: 'left', color: '#cbd5e1' }}>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {neg.products.map((p, i) => (
-                        <tr key={i}>
-                          <td style={{ border: '1px solid #334155', padding: 8, color: '#e5e7eb' }}>{p.name}</td>
-                          <td style={{ border: '1px solid #334155', padding: 8, color: '#e5e7eb' }}>{p.quantity}</td>
-                          <td style={{ border: '1px solid #334155', padding: 8 }}>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={p.your_price !== undefined && p.your_price !== null ? p.your_price : ''}
-                              onChange={e => handleOfferChange(neg.session_id, p.name, e.target.value)}
-                              style={{ width: 100, padding: '6px 8px', background: '#0f172a', color: '#e5e7eb', border: '1px solid #334155', borderRadius: 6 }}
-                            />
-                          </td>
-                          <td style={{ border: '1px solid #334155', padding: 8, display: 'flex', gap: 8 }}>
-                            <button
-                              onClick={() => sendMyPrices(neg.session_id)}
-                              disabled={sendingPrices[neg.session_id]}
-                              style={{ background: '#22c55e', color: '#052e2b', fontWeight: 600, border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer' }}
-                            >
-                              {sendingPrices[neg.session_id] ? 'Sending...' : 'Send My Prices'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+  if (error) {
+    return (
+      <div className="dashboard-container">
+        <div className="alert alert-error">
+          ❌ {error}
+        </div>
+      </div>
+    );
+  }
 
-                  {/* Chat UI */}
-                  <div style={{ marginTop: 16, background: '#0b1220', border: '1px solid #334155', borderRadius: 10, overflow: 'hidden' }}>
-                    <div style={{ padding: 10, background: '#1f2937', borderBottom: '1px solid #334155', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <strong style={{ color: '#cbd5e1' }}>Chat with AI Negotiator</strong>
-                      <button onClick={() => fetchChat(neg.session_id)} style={{ background: '#374151', color: '#e5e7eb', border: '1px solid #4b5563', borderRadius: 6, padding: '6px 12px', cursor: 'pointer' }}>Load Chat</button>
+  return (
+    <div className="dashboard-container">
+      <div className="dashboard-content">
+        <div className="dashboard-tabs" style={{ marginBottom: 24 }}>
+          <button 
+            onClick={() => setTab('active')} 
+            className={`dashboard-tab ${tab === 'active' ? 'active' : ''}`}
+          >
+            Active Negotiations
+          </button>
+          <button 
+            onClick={() => setTab('history')} 
+            className={`dashboard-tab ${tab === 'history' ? 'active' : ''}`}
+          >
+            History
+          </button>
+          <button 
+            onClick={() => { fetchNegotiations(); fetchHistory(); }} 
+            className="btn btn-secondary btn-sm"
+          >
+            🔄 Refresh
+          </button>
+        </div>
+        {lastUpdated && (
+          <div style={{ color: 'var(--muted)', fontSize: 14, marginBottom: 24 }}>
+            Last updated: {lastUpdated.toLocaleTimeString()}
+          </div>
+        )}
+
+        {tab === 'active' ? (
+          <>
+            {negotiations.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">📋</div>
+                <h3 className="empty-state-title">No Active Negotiations</h3>
+                <p className="empty-state-description">
+                  You don't have any active negotiation requests at the moment.
+                </p>
+              </div>
+            ) : (
+              negotiations.map((neg, idx) => (
+                <div key={idx} className="dashboard-card">
+                  <div className="card-header">
+                    <div>
+                      <h3 className="card-title">Negotiation Session #{neg.session_id}</h3>
+                      <p className="card-subtitle">Retailer request for product pricing</p>
                     </div>
-                    <div style={{ maxHeight: 240, overflowY: 'auto', padding: 10 }}>
+                    <span className={`status-badge ${neg.status === 'finalized' ? 'status-finalized' : 'status-pending'}`}>
+                      {neg.status}
+                    </span>
+                  </div>
+
+                  <div className="dashboard-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th>Quantity</th>
+                          <th>Your Price (₹)</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {neg.products.map((p, i) => (
+                          <tr key={i}>
+                            <td>{p.name}</td>
+                            <td>{p.quantity}</td>
+                            <td>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={p.your_price !== undefined && p.your_price !== null ? p.your_price : ''}
+                                onChange={e => handleOfferChange(neg.session_id, p.name, e.target.value)}
+                                className="form-input"
+                                style={{ width: 120 }}
+                                placeholder="0.00"
+                              />
+                            </td>
+                            <td>
+                              <button
+                                onClick={() => sendMyPrices(neg.session_id)}
+                                disabled={sendingPrices[neg.session_id]}
+                                className="btn btn-success btn-sm"
+                              >
+                                {sendingPrices[neg.session_id] ? 'Sending...' : 'Send Prices'}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Chat Interface */}
+                  <div className="chat-container" style={{ marginTop: 24 }}>
+                    <div className="chat-header">
+                      <h4 className="chat-title">💬 Chat with AI Negotiator</h4>
+                      <button 
+                        onClick={() => fetchChat(neg.session_id)} 
+                        className="btn btn-secondary btn-sm"
+                      >
+                        Load Chat
+                      </button>
+                    </div>
+                    <div className="chat-messages">
                       {(chats[neg.session_id]?.messages || []).map((m, i) => (
-                        <div key={i} style={{ marginBottom: 10 }}>
-                          <div style={{ fontSize: 12, color: '#94a3b8' }}>{m.role.toUpperCase()} • {new Date(m.created_at).toLocaleTimeString?.() || ''}</div>
-                          <div style={{ whiteSpace: 'pre-wrap', color: '#e5e7eb' }}>{m.content}</div>
+                        <div key={i} className={`chat-message ${m.role}`}>
+                          <div className="chat-meta">{m.role.toUpperCase()} • {new Date(m.created_at).toLocaleTimeString?.() || ''}</div>
+                          <div className="chat-content">{m.content}</div>
                         </div>
                       ))}
                       {!(chats[neg.session_id]?.messages) && (
-                        <div style={{ color: '#94a3b8' }}>Click "Load Chat" to view messages.</div>
+                        <div className="empty-state">
+                          <p className="empty-state-description">Click "Load Chat" to view messages.</p>
+                        </div>
                       )}
                     </div>
-                    <div style={{ padding: 10, borderTop: '1px solid #334155', display: 'flex', gap: 8, background: '#0f172a' }}>
+                    <div className="chat-input-container">
                       <input
                         type="text"
                         placeholder="Type your message..."
                         value={chats[neg.session_id]?.input || ''}
                         onChange={e => setChats(ch => ({ ...ch, [neg.session_id]: { ...(ch[neg.session_id] || { messages: [] }), input: e.target.value } }))}
-                        style={{ flex: 1, padding: 10, background: '#0b1220', color: '#e5e7eb', border: '1px solid #334155', borderRadius: 8 }}
+                        className="chat-input"
                       />
-                      <button onClick={() => sendChat(neg.session_id)} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: 8, padding: '10px 14px', cursor: 'pointer' }}>Send</button>
+                      <button 
+                        onClick={() => sendChat(neg.session_id)} 
+                        className="chat-send"
+                      >
+                        Send
+                      </button>
                     </div>
                   </div>
                 </div>
+              ))
+            )}
+          </>
+        ) : (
+          // History tab
+          <div>
+            {history.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">📊</div>
+                <h3 className="empty-state-title">No History Yet</h3>
+                <p className="empty-state-description">
+                  Your completed negotiations will appear here.
+                </p>
               </div>
-            ))
-          )}
-        </>
-      ) : (
-        // History tab
-        <div>
-          {history.length === 0 ? (
-            <div style={{ color: '#e5e7eb' }}>No history yet.</div>
-          ) : (
-            history.map((h, i) => (
-              <div key={i} style={{ marginBottom: 20, background: '#111827', border: '1px solid #334155', borderRadius: 10, padding: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ color: '#93c5fd', fontWeight: 600 }}>Session #{h.session_id}</div>
-                    <div style={{ color: '#94a3b8', fontSize: 12 }}>Retailer: {h.retailer}</div>
+            ) : (
+              history.map((h, i) => (
+                <div key={i} className="dashboard-card">
+                  <div className="card-header">
+                    <div>
+                      <h3 className="card-title">Session #{h.session_id}</h3>
+                      <p className="card-subtitle">Retailer: {h.retailer}</p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div className="status-badge status-finalized">
+                        Finalized
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
+                        {new Date(h.finalized_at).toLocaleString()}
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ color: '#34d399', fontSize: 12 }}>Finalized: {new Date(h.finalized_at).toLocaleString()}</div>
-                </div>
-                <div style={{ marginTop: 8 }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', background: '#0b1220', border: '1px solid #334155' }}>
-                    <thead>
-                      <tr style={{ background: '#1f2937' }}>
-                        <th style={{ border: '1px solid #334155', padding: 8, textAlign: 'left', color: '#cbd5e1' }}>Product</th>
-                        <th style={{ border: '1px solid #334155', padding: 8, textAlign: 'left', color: '#cbd5e1' }}>Final Price ({h.currency})</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {h.items.map((item, idx2) => (
-                        <tr key={idx2}>
-                          <td style={{ border: '1px solid #334155', padding: 8, color: '#e5e7eb' }}>{item.name}</td>
-                          <td style={{ border: '1px solid #334155', padding: 8, color: '#e5e7eb' }}>{item.final_price}</td>
+                  
+                  <div className="dashboard-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th>Final Price ({h.currency})</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {h.items.map((item, idx2) => (
+                          <tr key={idx2}>
+                            <td>{item.name}</td>
+                            <td>₹{item.final_price}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+              ))
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

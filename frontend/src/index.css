@@ -1,4 +1,3 @@
-/* Reset and full-viewport layout */
 html, body, #root {
   width: 100%;
   height: 100%;
@@ -6,14 +5,13 @@ html, body, #root {
   padding: 0;
 }
 
-/* Remove Vite's centering that causes side gaps */
 body {
   display: block;
   min-width: 320px;
   min-height: 100vh;
-  background: #0b1220;
-  color: #e5e7eb;
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -22,7 +20,7 @@ body {
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 
-/* Optional: prefer dark theme explicitly */
-@media (prefers-color-scheme: light) {
-  body { background: #0b1220; color: #e5e7eb; }
+/* Force light minimal theme */
+@media (prefers-color-scheme: dark) {
+  body { background: #ffffff; color: #0f172a; }
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import NegotiationResults from './NegotiationResults';
+import './Dashboard.css';
 
 function RetailerDashboard({ token }) {
   const [products, setProducts] = useState([{ name: '', quantity: 1 }]);
@@ -26,7 +27,7 @@ function RetailerDashboard({ token }) {
     setMessage('');
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
       const res = await fetch(`${API_BASE}/retailer/products`, {
         method: 'POST',
         headers: {
@@ -50,50 +51,120 @@ function RetailerDashboard({ token }) {
 
   if (showResults) {
     return (
-      <div>
-        <NegotiationResults token={token} />
-        <div style={{ textAlign: 'center', marginTop: 16 }}>
-          <button onClick={() => setShowResults(false)}>
-            Submit a new product list
-          </button>
+      <div className="dashboard-container">
+        <div className="dashboard-content">
+          <NegotiationResults token={token} />
+          <div style={{ textAlign: 'center', marginTop: 32 }}>
+            <button 
+              onClick={() => setShowResults(false)}
+              className="btn btn-secondary"
+            >
+              Submit a New Product List
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 500, margin: '2rem auto', padding: 20, border: '1px solid #ccc', borderRadius: 8 }}>
-      <h2>Enter Product List</h2>
-      <form onSubmit={handleSubmit}>
-        {products.map((product, idx) => (
-          <div key={idx} style={{ marginBottom: 12, display: 'flex', gap: 8 }}>
-            <input
-              placeholder="Product name"
-              value={product.name}
-              onChange={e => handleProductChange(idx, 'name', e.target.value)}
-              required
-              style={{ flex: 2 }}
-            />
-            <input
-              type="number"
-              min="1"
-              placeholder="Quantity"
-              value={product.quantity}
-              onChange={e => handleProductChange(idx, 'quantity', e.target.value)}
-              required
-              style={{ width: 80 }}
-            />
-            {products.length > 1 && (
-              <button type="button" onClick={() => removeProduct(idx)} style={{ color: 'red' }}>Remove</button>
-            )}
+    <div className="dashboard-container">
+      <div className="dashboard-content">
+        <div className="dashboard-card">
+          <div className="card-header">
+            <div>
+              <h2 className="card-title">Product Requirements</h2>
+              <p className="card-subtitle">Add the products you need and their quantities</p>
+            </div>
           </div>
-        ))}
-        <button type="button" onClick={addProduct} style={{ marginBottom: 12 }}>Add Product</button>
-        <br />
-        <button type="submit">Submit List</button>
-      </form>
-      {message && <div style={{ color: 'green', marginTop: 10 }}>{message}</div>}
-      {error && <div style={{ color: 'red', marginTop: 10 }}>{error}</div>}
+          
+          <form onSubmit={handleSubmit}>
+            <div className="product-list">
+              {products.map((product, idx) => (
+                <div key={idx} className="product-item">
+                  <input
+                    className="form-input product-input"
+                    placeholder="Enter product name"
+                    value={product.name}
+                    onChange={e => handleProductChange(idx, 'name', e.target.value)}
+                    required
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    className="form-input product-quantity"
+                    placeholder="Qty"
+                    value={product.quantity}
+                    onChange={e => handleProductChange(idx, 'quantity', e.target.value)}
+                    required
+                  />
+                  {products.length > 1 && (
+                    <button 
+                      type="button" 
+                      onClick={() => removeProduct(idx)}
+                      className="btn btn-danger btn-sm"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ marginBottom: 24 }}>
+              <button 
+                type="button" 
+                onClick={addProduct}
+                className="btn btn-secondary"
+              >
+                + Add Product
+              </button>
+            </div>
+            
+            <button type="submit" className="btn btn-primary btn-lg">
+              Submit Product List
+            </button>
+          </form>
+          
+          {message && (
+            <div className="alert alert-success">
+              ✅ {message}
+            </div>
+          )}
+          {error && (
+            <div className="alert alert-error">
+              ❌ {error}
+            </div>
+          )}
+        </div>
+        
+        {/* Quick Tips */}
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3 className="card-title">💡 Quick Tips</h3>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
+            <div>
+              <h4 style={{ color: 'var(--primary)', marginBottom: 8 }}>Be Specific</h4>
+              <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>
+                Include detailed product specifications, brands, or models for better quotes.
+              </p>
+            </div>
+            <div>
+              <h4 style={{ color: 'var(--primary)', marginBottom: 8 }}>Quantity Matters</h4>
+              <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>
+                Higher quantities often lead to better per-unit pricing from wholesalers.
+              </p>
+            </div>
+            <div>
+              <h4 style={{ color: 'var(--primary)', marginBottom: 8 }}>Compare Offers</h4>
+              <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>
+                Review all offers carefully and negotiate for the best possible deal.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
