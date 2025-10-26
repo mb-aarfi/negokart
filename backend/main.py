@@ -82,13 +82,34 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("negokart.backend")
 
+# CORS configuration
+allowed_origins = [
+    "https://negokart.vercel.app", 
+    "https://your-app-name.vercel.app", 
+    "http://localhost:5173", 
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+]
+
+logger.info(f"CORS allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://negokart.vercel.app", "https://your-app-name.vercel.app", "http://localhost:5173", "http://127.0.0.1:5173", "*"],  
+    allow_origins=allowed_origins,  
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Add request logging middleware for debugging
+@app.middleware("http")
+async def log_requests(request, call_next):
+    logger.info(f"Request: {request.method} {request.url}")
+    logger.info(f"Origin: {request.headers.get('origin', 'No origin header')}")
+    response = await call_next(request)
+    logger.info(f"Response status: {response.status_code}")
+    return response
 
 def get_db():
     db = SessionLocal()
