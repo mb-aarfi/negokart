@@ -14,7 +14,7 @@ function NegotiationResults({ token }) {
   const fetchResults = async () => {
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com';
       const res = await fetch(`${API_BASE}/retailer/negotiation_results`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });

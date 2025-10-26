@@ -20,7 +20,7 @@ function Register({ onBackClick }) {
     setMessage('');
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com'; 
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com'; 
       const res = await fetch(`${API_BASE}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -35,7 +35,7 @@ function Register({ onBackClick }) {
       }
     } catch (err) {
       console.error('Registration error:', err);
-      console.error('API_BASE:', import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com');
+      console.error('API_BASE:', import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com');
       setError(`Network error: ${err.message}`);
     }
   };

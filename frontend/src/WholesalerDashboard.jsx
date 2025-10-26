@@ -16,7 +16,7 @@ function WholesalerDashboard({ token }) {
     setLoading(true);
     setError('');
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com';
       const res = await fetch(`${API_BASE}/wholesaler/negotiations`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -35,7 +35,7 @@ function WholesalerDashboard({ token }) {
 
   const fetchHistory = async () => {
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com';
       const res = await fetch(`${API_BASE}/wholesaler/history`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -48,7 +48,7 @@ function WholesalerDashboard({ token }) {
 
   const fetchChat = async (sessionId) => {
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com';
       const res = await fetch(`${API_BASE}/wholesaler/chat/${sessionId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -65,7 +65,7 @@ function WholesalerDashboard({ token }) {
     if (!text) return;
     setChats(ch => ({ ...ch, [sessionId]: { ...current, input: '' } }));
     try {
-      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com';
+      const API_BASE = import.meta.env.VITE_API_BASE || 'https://negokart-backend-8pt9.onrender.com';
       const res = await fetch(`${API_BASE}/wholesaler/chat/${sessionId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
