@@ -35,7 +35,8 @@ function Login({ onLogin, onBackClick }) {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('Network error - Please check your connection');
+      console.error('API_BASE:', import.meta.env.VITE_API_BASE || 'https://negokart-backend.onrender.com');
+      setError(`Network error: ${err.message}`);
     }
   };
 

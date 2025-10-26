@@ -135,5 +135,3 @@ If you encounter issues:
 4. Check GitHub issues for common problems
 
 ---
-
-🎉 **Congratulations!** Your NegoKart application is now live and accessible worldwide!
