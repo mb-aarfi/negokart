@@ -51,9 +51,17 @@ ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_password_hash(password):
+    # Truncate password to 72 bytes (bcrypt limit)
+    if isinstance(password, str):
+        password = password.encode('utf-8')
+    password = password[:72]
     return pwd_context.hash(password)
 
 def verify_password(plain_password, hashed_password):
+    # Truncate password to 72 bytes (bcrypt limit)
+    if isinstance(plain_password, str):
+        plain_password = plain_password.encode('utf-8')
+    plain_password = plain_password[:72]
     return pwd_context.verify(plain_password, hashed_password)
 
 # User model
@@ -134,12 +142,29 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 # Login endpoint
 @app.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
-    token_data = {"sub": user.username, "role": user.role}
-    access_token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
-    return {"access_token": access_token, "token_type": "bearer"}
+    try:
+        user = db.query(User).filter(User.username == form_data.username).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="Incorrect username or password")
+        
+        # Verify password with error handling
+        try:
+            password_valid = verify_password(form_data.password, user.hashed_password)
+        except Exception as e:
+            logger.error(f"Password verification error: {e}")
+            raise HTTPException(status_code=401, detail="Incorrect username or password")
+        
+        if not password_valid:
+            raise HTTPException(status_code=401, detail="Incorrect username or password")
+            
+        token_data = {"sub": user.username, "role": user.role}
+        access_token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
+        return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/")
 def read_root():
