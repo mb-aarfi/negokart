@@ -64,7 +64,7 @@ class User(Base):
     hashed_password = Column(String)
     role = Column(String)  
 
-Base.metadata.create_all(bind=engine)
+# Database tables will be created at the end of the file
 
 # Pydantic schemas
 class UserCreate(BaseModel):
@@ -124,6 +124,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 def read_root():
     return {"message": "Hello, AI Negotiator Backend!"}
 
+@app.get("/health")
+def health_check():
+    logger.info("Health check endpoint accessed")
+    return {"status": "healthy", "message": "Backend is running", "database_url": DATABASE_URL[:20] + "..." if DATABASE_URL else "SQLite"}
+
 # Product list model
 class ProductList(Base):
     __tablename__ = "product_lists"
@@ -131,7 +136,7 @@ class ProductList(Base):
     retailer_id = Column(Integer)
     products = Column(String)  
 
-Base.metadata.create_all(bind=engine)
+# Database tables will be created at the end of the file
 
 class ProductItem(BaseModel):
     name: str
@@ -183,7 +188,7 @@ class ChatMessage(Base):
     content = Column(String)
     created_at = Column(String, default=lambda: datetime.utcnow().isoformat())
 
-Base.metadata.create_all(bind=engine)
+# Database tables will be created at the end of the file
 
 # Helper to get current user from JWT
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -553,3 +558,7 @@ async def send_chat(session_id: int, req: ChatSendRequest, db: Session = Depends
     finalized = maybe_apply_final_json(session_id, current_user.id, ai_text or "", db)
 
     return {"reply": ai_msg.content, "finalized": finalized}
+
+# Create all database tables
+Base.metadata.create_all(bind=engine)
+logger.info("Database tables created successfully")
