@@ -143,7 +143,7 @@ function RetailerDashboard({ token }) {
           <div className="card-header">
             <h3 className="card-title">💡 Quick Tips</h3>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 20 }}>
+          <div className="tips-grid">
             <div>
               <h4 style={{ color: 'var(--primary)', marginBottom: 8 }}>Be Specific</h4>
               <p style={{ color: 'var(--muted)', fontSize: 14, margin: 0 }}>

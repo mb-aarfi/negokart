@@ -185,46 +185,48 @@ function WholesalerDashboard({ token }) {
                     </span>
                   </div>
 
-                  <div className="dashboard-table">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Product</th>
-                          <th>Quantity</th>
-                          <th>Your Price (₹)</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {neg.products.map((p, i) => (
-                          <tr key={i}>
-                            <td>{p.name}</td>
-                            <td>{p.quantity}</td>
-                            <td>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={p.your_price !== undefined && p.your_price !== null ? p.your_price : ''}
-                                onChange={e => handleOfferChange(neg.session_id, p.name, e.target.value)}
-                                className="form-input"
-                                style={{ width: 120 }}
-                                placeholder="0.00"
-                              />
-                            </td>
-                            <td>
-                              <button
-                                onClick={() => sendMyPrices(neg.session_id)}
-                                disabled={sendingPrices[neg.session_id]}
-                                className="btn btn-success btn-sm"
-                              >
-                                {sendingPrices[neg.session_id] ? 'Sending...' : 'Send Prices'}
-                              </button>
-                            </td>
+                  <div className="table-wrapper">
+                    <div className="dashboard-table">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Your Price (₹)</th>
+                            <th>Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {neg.products.map((p, i) => (
+                            <tr key={i}>
+                              <td>{p.name}</td>
+                              <td>{p.quantity}</td>
+                              <td>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={p.your_price !== undefined && p.your_price !== null ? p.your_price : ''}
+                                  onChange={e => handleOfferChange(neg.session_id, p.name, e.target.value)}
+                                  className="form-input"
+                                  style={{ width: 120 }}
+                                  placeholder="0.00"
+                                />
+                              </td>
+                              <td>
+                                <button
+                                  onClick={() => sendMyPrices(neg.session_id)}
+                                  disabled={sendingPrices[neg.session_id]}
+                                  className="btn btn-success btn-sm"
+                                >
+                                  {sendingPrices[neg.session_id] ? 'Sending...' : 'Send Prices'}
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
 
                   {/* Chat Interface */}
@@ -300,23 +302,25 @@ function WholesalerDashboard({ token }) {
                     </div>
                   </div>
                   
-                  <div className="dashboard-table">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Product</th>
-                          <th>Final Price ({h.currency})</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {h.items.map((item, idx2) => (
-                          <tr key={idx2}>
-                            <td>{item.name}</td>
-                            <td>₹{item.final_price}</td>
+                  <div className="table-wrapper">
+                    <div className="dashboard-table">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th>Final Price ({h.currency})</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {h.items.map((item, idx2) => (
+                            <tr key={idx2}>
+                              <td>{item.name}</td>
+                              <td>₹{item.final_price}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               ))

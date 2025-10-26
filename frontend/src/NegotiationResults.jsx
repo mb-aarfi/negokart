@@ -199,32 +199,34 @@ function NegotiationResults({ token }) {
               </div>
             </div>
             
-            <div className="dashboard-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Offered Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {wholesaler.offers.map((offer, i) => (
-                    <tr key={i} style={{ 
-                      background: wholesaler.status === 'finalized' && offer.price === bestPrices[offer.product_name] ? 'rgba(16, 185, 129, 0.05)' : 'transparent'
-                    }}>
-                      <td>{offer.product_name}</td>
-                      <td style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontWeight: 500 }}>₹{offer.price}</span>
-                        {wholesaler.status === 'finalized' && offer.price === bestPrices[offer.product_name] && (
-                          <span className="status-badge status-best" style={{ fontSize: 10, padding: '2px 6px' }}>
-                            BEST
-                          </span>
-                        )}
-                      </td>
+            <div className="table-wrapper">
+              <div className="dashboard-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Offered Price</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {wholesaler.offers.map((offer, i) => (
+                      <tr key={i} style={{ 
+                        background: wholesaler.status === 'finalized' && offer.price === bestPrices[offer.product_name] ? 'rgba(16, 185, 129, 0.05)' : 'transparent'
+                      }}>
+                        <td>{offer.product_name}</td>
+                        <td style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontWeight: 500 }}>₹{offer.price}</span>
+                          {wholesaler.status === 'finalized' && offer.price === bestPrices[offer.product_name] && (
+                            <span className="status-badge status-best" style={{ fontSize: 10, padding: '2px 6px' }}>
+                              BEST
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         ))}

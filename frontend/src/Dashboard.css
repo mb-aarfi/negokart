@@ -542,39 +542,185 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Tips Grid */
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* Responsive Tables */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.dashboard-table {
+  min-width: 600px;
+}
+
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .dashboard-content {
+    padding: 24px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-tabs {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-table {
+    min-width: 500px;
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-content {
-    padding: 20px;
+    padding: 16px;
   }
   
   .dashboard-header {
-    padding: 20px;
+    padding: 16px;
   }
   
   .dashboard-title {
-    font-size: 24px;
+    font-size: 22px;
   }
-  
+
+  .dashboard-subtitle {
+    font-size: 14px;
+  }
+
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
-  
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .card-title {
+    font-size: 18px;
+  }
+
   .product-item {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .product-input,
   .product-quantity {
     width: 100%;
   }
-  
+
   .chat-message.user {
-    margin-left: 10%;
+    margin-left: 5%;
+  }
+
+  .chat-message.assistant {
+    margin-right: 5%;
+  }
+
+  .chat-input-container {
+    flex-direction: column;
+  }
+
+  .chat-send {
+    width: 100%;
+  }
+
+  .tips-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Make tables scrollable on mobile */
+  .dashboard-table {
+    min-width: 400px;
+  }
+
+  .table-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Dashboard tabs on mobile */
+  .dashboard-tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dashboard-tab {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Adjust form layouts */
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-input,
+  .form-select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-content {
+    padding: 12px;
   }
   
-  .chat-message.assistant {
-    margin-right: 10%;
+  .dashboard-header {
+    padding: 12px;
+  }
+
+  .dashboard-title {
+    font-size: 20px;
+  }
+
+  .stats-grid {
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .dashboard-card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .card-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .btn-lg {
+    padding: 14px 24px;
+    font-size: 14px;
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 11px;
   }
 }

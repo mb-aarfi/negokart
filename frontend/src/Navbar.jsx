@@ -1,34 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
 import logo from './assets/logo_nego.png';
+import './Navbar.css';
 
 function Navbar({ isAuthenticated, role, onLoginClick, onRegisterClick, onLogoutClick }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <header style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
-      padding: '14px 24px',
-      borderBottom: '1px solid #e5e7eb',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      background: '#ffffff',
-      backdropFilter: 'saturate(140%) blur(6px)'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <img src="https://img.freepik.com/premium-vector/negotiation-icon_1134104-20778.jpg" alt="NegoKart" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'contain' }} />
-        <span style={{ fontWeight: 700, letterSpacing: 0.4, color: '#0f172a' }}>NegoKart - An AI Negotiator</span>
+    <header className="navbar">
+      <div className="navbar-content">
+        <div className="navbar-brand">
+          <img src="https://img.freepik.com/premium-vector/negotiation-icon_1134104-20778.jpg" alt="NegoKart" className="navbar-logo" />
+          <span className="navbar-title">NegoKart - An AI Negotiator</span>
+        </div>
+        
+        {/* Desktop Navigation */}
+        <nav className="navbar-desktop">
+          {!isAuthenticated ? (
+            <>
+              <button onClick={onLoginClick} className="navbar-btn navbar-btn-outline">Login</button>
+              <button onClick={onRegisterClick} className="navbar-btn navbar-btn-primary">Get Started</button>
+            </>
+          ) : (
+            <div className="navbar-user">
+              {role && <span className="navbar-role">{role}</span>}
+              <button onClick={onLogoutClick} className="navbar-btn navbar-btn-danger">Logout</button>
+            </div>
+          )}
+        </nav>
+
+        {/* Mobile Menu Toggle */}
+        <button 
+          className="navbar-mobile-toggle"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          <span className={`hamburger ${mobileMenuOpen ? 'active' : ''}`}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
       </div>
-      {!isAuthenticated ? (
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={onLoginClick} style={{ background: 'transparent', color: '#0f172a', border: '1px solid #94a3b8', borderRadius: 6, padding: '8px 14px', cursor: 'pointer' }}>Login</button>
-          <button onClick={onRegisterClick} style={{ background: '#2563eb', color: 'white', border: '1px solid #2563eb', borderRadius: 6, padding: '8px 14px', cursor: 'pointer', boxShadow: '0 6px 16px rgba(37,99,235,0.25)' }}>Get Started</button>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          {role && <span style={{ color: '#334155', fontSize: 13, border: '1px solid #e5e7eb', padding: '4px 8px', borderRadius: 999 }}>{role}</span>}
-          <button onClick={onLogoutClick} style={{ color: 'white', background: '#ef4444', border: '1px solid #ef4444', borderRadius: 6, padding: '8px 14px', cursor: 'pointer' }}>Logout</button>
-        </div>
+
+      {/* Mobile Navigation */}
+      {mobileMenuOpen && (
+        <nav className="navbar-mobile">
+          {!isAuthenticated ? (
+            <div className="navbar-mobile-buttons">
+              <button onClick={() => { setMobileMenuOpen(false); onLoginClick(); }} className="navbar-btn navbar-btn-outline mobile-full">Login</button>
+              <button onClick={() => { setMobileMenuOpen(false); onRegisterClick(); }} className="navbar-btn navbar-btn-primary mobile-full">Get Started</button>
+            </div>
+          ) : (
+            <div className="navbar-mobile-user">
+              {role && <span className="navbar-role mobile-full">{role}</span>}
+              <button onClick={() => { setMobileMenuOpen(false); onLogoutClick(); }} className="navbar-btn navbar-btn-danger mobile-full">Logout</button>
+            </div>
+          )}
+        </nav>
       )}
     </header>
   );
